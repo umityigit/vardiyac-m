@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Vardiya Master prod.by umit abi+</title>
+<style>
+body{font-family:Segoe UI;background:#f1f5f9;padding:20px}
+.container{background:#fff;padding:20px;border-radius:12px}
+button{padding:8px 14px;background:#1e293b;color:#fff;border:none;border-radius:6px;font-weight:bold;margin-right:6px}
+textarea{width:100%;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:11px}
+th,td{border:1px solid #cbd5e1;padding:4px;text-align:center;cursor:pointer}
+.day{background:#e0f2fe;color:#0369a1;font-weight:bold}
+.night{background:#f5f3ff;color:#5b21b6;font-weight:bold}
+.off{background:#fee2e2;color:#991b1b}
+.stat{background:#f8fafc;font-weight:bold}
+
+.menu{
+ position:absolute;background:#fff;border-radius:8px;
+ border:1px solid #cbd5e1;box-shadow:0 6px 16px rgba(0,0,0,.2);
+ display:none;z-index:10;overflow:hidden
+}
+.menu div{padding:8px 14px;cursor:pointer;font-size:13px}
+.menu div:hover{background:#f1f5f9}
+.m-day{color:#0369a1;font-weight:bold}
+.m-night{color:#5b21b6;font-weight:bold}
+.m-off{color:#991b1b;font-weight:bold}
+.m-week{border-top:1px solid #e5e7eb;background:#f8fafc;font-weight:bold}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>Vardiya Master prod.by umit abi+</h2>
+
+<button onclick="generate()">PLAN OLUŞTUR</button>
+<button onclick="copyExcel()">EXCEL'E KOPYALA</button>
+<button onclick="clearTable()">TABLOYU TEMİZLE</button>
+<button disabled>HAFTALIK PLAN</button>
+
+<textarea id="names">Ali,Veli,Ayşe,Fatma,Mehmet,Can,Ece,Naz</textarea>
+<div id="out"></div>
+</div>
+
+<div class="menu" id="cellMenu">
+<div class="m-day" onclick="setCell('08-20')">🌞 08-20</div>
+<div class="m-night" onclick="setCell('20-08')">🌙 20-08</div>
+<div class="m-off" onclick="setCell('OFF')">⛔ OFF</div>
+<div class="m-week">📅 Haftalık Plan (yakında)</div>
+</div>
+
+<script>
+const DAYS=28;
+const GUN=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
+let plan={},activeCell=null;
+
+function generate(){
+const names=document.getElementById("names").value.split(",").map(x=>x.trim());
+plan={};
+let work={},nightC={};
+
+names.forEach(n=>{
+ plan[n]=Array(DAYS+1).fill("OFF");
+ work[n]=0; nightC[n]=0;
+});
+
+for(let w=0;w<4;w++){
+ let start=w*7+1;
+ let weekdaySpecial=[2,3,4][Math.floor(Math.random()*3)];
+
+ for(let d=start;d<start+7;d++){
+  let gi=d%7;
+  let isWeekday=gi>=1 && gi<=5;
+  let dayLimit=2;
+  if(isWeekday && gi!==weekdaySpecial) dayLimit=3;
+
+  names.filter(p=>plan[p][d-1]!=="20-08")
+   .sort((a,b)=>nightC[a]-nightC[b])
+   .slice(0,2)
+   .forEach(p=>{
+    plan[p][d]="20-08"; nightC[p]++; work[p]++;
+   });
+
+  let curDay=0;
+  names.filter(p=>plan[p][d]==="OFF" && plan[p][d-1]!=="20-08")
+   .sort((a,b)=>work[a]-work[b])
+   .forEach(p=>{
+    if(curDay<dayLimit){
+     plan[p][d]="08-20"; work[p]++; curDay++;
+    }
+   });
+
+  names.forEach(p=>{
+   if(plan[p][d-1]==="20-08") plan[p][d]="OFF";
+  });
+ }
+}
+render(names);
+}
+
+function render(names){
+let h="<table><tr><th>İsim</th>";
+for(let d=1;d<=DAYS;d++) h+=`<th>${GUN[d%7]}<br>${d}</th>`;
+h+="<th>Top</th><th>G</th><th>N</th></tr>";
+
+names.forEach(p=>{
+ let t=0,g=0,n=0;
+ h+=`<tr><td>${p}</td>`;
+ for(let d=1;d<=DAYS;d++){
+  let v=plan[p][d];
+  if(v!=="OFF") t++;
+  if(v==="08-20") g++;
+  if(v==="20-08") n++;
+  let c=v==="08-20"?"day":v==="20-08"?"night":"off";
+  h+=`<td class="${c}" onclick="openMenu(this,'${p}',${d})">${v}</td>`;
+ }
+ h+=`<td class="stat">${t}</td><td class="stat">${g}</td><td class="stat">${n}</td></tr>`;
+});
+document.getElementById("out").innerHTML=h+"</table>";
+}
+
+function openMenu(td,p,d){
+activeCell={td,p,d};
+let m=document.getElementById("cellMenu");
+m.style.display="block";
+m.style.left=event.pageX+"px";
+m.style.top=event.pageY+"px";
+}
+
+function setCell(v){
+if(!activeCell) return;
+plan[activeCell.p][activeCell.d]=v;
+render(document.getElementById("names").value.split(",").map(x=>x.trim()));
+document.getElementById("cellMenu").style.display="none";
+}
+
+document.body.onclick=e=>{
+ if(!e.target.closest(".menu") && e.target.tagName!=="TD")
+  document.getElementById("cellMenu").style.display="none";
+};
+
+function copyExcel(){
+let r=document.createRange();
+r.selectNode(document.querySelector("table"));
+window.getSelection().removeAllRanges();
+window.getSelection().addRange(r);
+document.execCommand("copy");
+window.getSelection().removeAllRanges();
+alert("Excel'e kopyalandı");
+}
+
+function clearTable(){
+document.getElementById("out").innerHTML="";
+}
+</script>
+</body>
+</html>
