@@ -1,156 +1,171 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Vardiya Master prod.by umit abi+</title>
-<style>
-body{font-family:Segoe UI;background:#f1f5f9;padding:20px}
-.container{background:#fff;padding:20px;border-radius:12px}
-button{padding:8px 14px;background:#1e293b;color:#fff;border:none;border-radius:6px;font-weight:bold;margin-right:6px}
-textarea{width:100%;margin:10px 0}
-table{border-collapse:collapse;width:100%;font-size:11px}
-th,td{border:1px solid #cbd5e1;padding:4px;text-align:center;cursor:pointer}
-.day{background:#e0f2fe;color:#0369a1;font-weight:bold}
-.night{background:#f5f3ff;color:#5b21b6;font-weight:bold}
-.off{background:#fee2e2;color:#991b1b}
-.stat{background:#f8fafc;font-weight:bold}
+    <meta charset="UTF-8">
+    <title>Vardiya Master v6.0 - 12 Saatlik Plan</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; padding: 20px; }
+        .container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        h2 { color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-top: 0; }
+        
+        .nav-bar { margin-bottom: 15px; }
+        .btn-back { background: #64748b; margin-bottom: 10px; }
 
-.menu{
- position:absolute;background:#fff;border-radius:8px;
- border:1px solid #cbd5e1;box-shadow:0 6px 16px rgba(0,0,0,.2);
- display:none;z-index:10;overflow:hidden
-}
-.menu div{padding:8px 14px;cursor:pointer;font-size:13px}
-.menu div:hover{background:#f1f5f9}
-.m-day{color:#0369a1;font-weight:bold}
-.m-night{color:#5b21b6;font-weight:bold}
-.m-off{color:#991b1b;font-weight:bold}
-.m-week{border-top:1px solid #e5e7eb;background:#f8fafc;font-weight:bold}
-</style>
+        button { padding: 10px 16px; background: #1e293b; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-right: 5px; margin-bottom: 5px; }
+        button:hover { background: #334155; }
+        .btn-excel { background: #059669; }
+        .btn-clear { background: #ef4444; }
+
+        textarea { width: 100%; height: 60px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin: 10px 0; font-family: inherit; }
+        
+        .table-wrapper { overflow-x: auto; margin-top: 15px; }
+        table { border-collapse: collapse; width: 100%; font-size: 10px; background: white; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px 4px; text-align: center; cursor: pointer; min-width: 35px; }
+        th { background: #475569; color: white; }
+        
+        /* Vardiya Renkleri */
+        .day { background: #e0f2fe; color: #0369a1; font-weight: bold; }
+        .night { background: #1e293b; color: #f8fafc; font-weight: bold; }
+        .off { background: #fee2e2; color: #991b1b; }
+        .stat { background: #f8fafc; font-weight: bold; font-size: 11px; }
+
+        /* Mini Menü */
+        .menu { position: absolute; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: none; z-index: 100; overflow: hidden; min-width: 150px; }
+        .menu div { padding: 12px 15px; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 1px solid #f1f5f9; }
+        .menu div:hover { background: #f1f5f9; color: #2563eb; }
+    </style>
 </head>
 <body>
 
 <div class="container">
-<h2>Vardiya Master prod.by umit abi+</h2>
+    <div class="nav-bar">
+        <button class="btn-back" onclick="location.href='index.html'">⬅ Ana Menüye Dön</button>
+    </div>
+    
+    <h2>Vardiya Master - 12 Saatlik Plan</h2>
 
-<button onclick="generate()">PLAN OLUŞTUR</button>
-<button onclick="copyExcel()">EXCEL'E KOPYALA</button>
-<button onclick="clearTable()">TABLOYU TEMİZLE</button>
-<button disabled>HAFTALIK PLAN</button>
+    <div class="controls">
+        <button onclick="generate()">🚀 PLANI OLUŞTUR</button>
+        <button class="btn-excel" onclick="copyExcel()">📊 EXCEL'E KOPYALA</button>
+        <button class="btn-clear" onclick="clearTable()">🗑️ TEMİZLE</button>
+    </div>
 
-<textarea id="names">Ali,Veli,Ayşe,Fatma,Mehmet,Can,Ece,Naz</textarea>
-<div id="out"></div>
+    <textarea id="names">Ali, Veli, Ayşe, Fatma, Mehmet, Can, Ece, Naz</textarea>
+    
+    <div id="out" class="table-wrapper"></div>
 </div>
 
 <div class="menu" id="cellMenu">
-<div class="m-day" onclick="setCell('08-20')">🌞 08-20</div>
-<div class="m-night" onclick="setCell('20-08')">🌙 20-08</div>
-<div class="m-off" onclick="setCell('OFF')">⛔ OFF</div>
-<div class="m-week">📅 Haftalık Plan (yakında)</div>
+    <div style="color:#0369a1" onclick="setCell('08-20')">☀️ 08-20 (Gündüz)</div>
+    <div style="color:#1e293b" onclick="setCell('20-08')">🌑 20-08 (Gece)</div>
+    <div style="color:#991b1b" onclick="setCell('OFF')">⛔ OFF (İzin)</div>
 </div>
 
 <script>
-const DAYS=28;
-const GUN=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
-let plan={},activeCell=null;
+const DAYS = 28;
+const GUN = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
+let plan = {}, activeCell = null;
 
-function generate(){
-const names=document.getElementById("names").value.split(",").map(x=>x.trim());
-plan={};
-let work={},nightC={};
+function generate() {
+    const names = document.getElementById("names").value.split(",").map(x => x.trim()).filter(x => x !== "");
+    plan = {};
+    let work = {}, nightC = {};
 
-names.forEach(n=>{
- plan[n]=Array(DAYS+1).fill("OFF");
- work[n]=0; nightC[n]=0;
-});
+    names.forEach(n => {
+        plan[n] = Array(DAYS + 1).fill("OFF");
+        work[n] = 0; nightC[n] = 0;
+    });
 
-for(let w=0;w<4;w++){
- let start=w*7+1;
- let weekdaySpecial=[2,3,4][Math.floor(Math.random()*3)];
+    for (let w = 0; w < 4; w++) {
+        let start = w * 7 + 1;
+        let weekdaySpecial = [2, 3, 4][Math.floor(Math.random() * 3)];
 
- for(let d=start;d<start+7;d++){
-  let gi=d%7;
-  let isWeekday=gi>=1 && gi<=5;
-  let dayLimit=2;
-  if(isWeekday && gi!==weekdaySpecial) dayLimit=3;
+        for (let d = start; d < start + 7; d++) {
+            let gi = d % 7;
+            let isWeekday = gi >= 1 && gi <= 5;
+            let dayLimit = 2;
+            if (isWeekday && gi !== weekdaySpecial) dayLimit = 3;
 
-  names.filter(p=>plan[p][d-1]!=="20-08")
-   .sort((a,b)=>nightC[a]-nightC[b])
-   .slice(0,2)
-   .forEach(p=>{
-    plan[p][d]="20-08"; nightC[p]++; work[p]++;
-   });
+            // Gece Vardiyası Atama
+            names.filter(p => plan[p][d - 1] !== "20-08")
+                .sort((a, b) => nightC[a] - nightC[b])
+                .slice(0, 2)
+                .forEach(p => {
+                    plan[p][d] = "20-08"; nightC[p]++; work[p]++;
+                });
 
-  let curDay=0;
-  names.filter(p=>plan[p][d]==="OFF" && plan[p][d-1]!=="20-08")
-   .sort((a,b)=>work[a]-work[b])
-   .forEach(p=>{
-    if(curDay<dayLimit){
-     plan[p][d]="08-20"; work[p]++; curDay++;
+            // Gündüz Vardiyası Atama
+            let curDay = 0;
+            names.filter(p => plan[p][d] === "OFF" && plan[p][d - 1] !== "20-08")
+                .sort((a, b) => work[a] - work[b])
+                .forEach(p => {
+                    if (curDay < dayLimit) {
+                        plan[p][d] = "08-20"; work[p]++; curDay++;
+                    }
+                });
+
+            // Gece sonrası OFF kuralı
+            names.forEach(p => {
+                if (plan[p][d - 1] === "20-08") plan[p][d] = "OFF";
+            });
+        }
     }
-   });
-
-  names.forEach(p=>{
-   if(plan[p][d-1]==="20-08") plan[p][d]="OFF";
-  });
- }
-}
-render(names);
+    render(names);
 }
 
-function render(names){
-let h="<table><tr><th>İsim</th>";
-for(let d=1;d<=DAYS;d++) h+=`<th>${GUN[d%7]}<br>${d}</th>`;
-h+="<th>Top</th><th>G</th><th>N</th></tr>";
+function render(names) {
+    let h = "<table><tr><th>İsim</th>";
+    for (let d = 1; d <= DAYS; d++) h += `<th>${GUN[d % 7]}<br>${d}</th>`;
+    h += "<th>Toplam</th><th>G</th><th>N</th></tr>";
 
-names.forEach(p=>{
- let t=0,g=0,n=0;
- h+=`<tr><td>${p}</td>`;
- for(let d=1;d<=DAYS;d++){
-  let v=plan[p][d];
-  if(v!=="OFF") t++;
-  if(v==="08-20") g++;
-  if(v==="20-08") n++;
-  let c=v==="08-20"?"day":v==="20-08"?"night":"off";
-  h+=`<td class="${c}" onclick="openMenu(this,'${p}',${d})">${v}</td>`;
- }
- h+=`<td class="stat">${t}</td><td class="stat">${g}</td><td class="stat">${n}</td></tr>`;
-});
-document.getElementById("out").innerHTML=h+"</table>";
+    names.forEach(p => {
+        let t = 0, g = 0, n = 0;
+        h += `<tr><td style="background:#f8fafc; font-weight:bold; text-align:left; padding-left:10px;">${p}</td>`;
+        for (let d = 1; d <= DAYS; d++) {
+            let v = plan[p][d];
+            if (v !== "OFF") t++;
+            if (v === "08-20") g++;
+            if (v === "20-08") n++;
+            let c = v === "08-20" ? "day" : v === "20-08" ? "night" : "off";
+            h += `<td class="${c}" onclick="openMenu(event, this,'${p}',${d})">${v}</td>`;
+        }
+        h += `<td class="stat">${t}</td><td class="stat">${g}</td><td class="stat">${n}</td></tr>`;
+    });
+    document.getElementById("out").innerHTML = h + "</table>";
 }
 
-function openMenu(td,p,d){
-activeCell={td,p,d};
-let m=document.getElementById("cellMenu");
-m.style.display="block";
-m.style.left=event.pageX+"px";
-m.style.top=event.pageY+"px";
+function openMenu(e, td, p, d) {
+    activeCell = { td, p, d };
+    let m = document.getElementById("cellMenu");
+    m.style.display = "block";
+    m.style.left = e.pageX + "px";
+    m.style.top = e.pageY + "px";
+    e.stopPropagation();
 }
 
-function setCell(v){
-if(!activeCell) return;
-plan[activeCell.p][activeCell.d]=v;
-render(document.getElementById("names").value.split(",").map(x=>x.trim()));
-document.getElementById("cellMenu").style.display="none";
+function setCell(v) {
+    if (!activeCell) return;
+    plan[activeCell.p][activeCell.d] = v;
+    const names = document.getElementById("names").value.split(",").map(x => x.trim()).filter(x => x !== "");
+    render(names);
+    document.getElementById("cellMenu").style.display = "none";
 }
 
-document.body.onclick=e=>{
- if(!e.target.closest(".menu") && e.target.tagName!=="TD")
-  document.getElementById("cellMenu").style.display="none";
+window.onclick = e => {
+    if (!e.target.closest(".menu")) document.getElementById("cellMenu").style.display = "none";
 };
 
-function copyExcel(){
-let r=document.createRange();
-r.selectNode(document.querySelector("table"));
-window.getSelection().removeAllRanges();
-window.getSelection().addRange(r);
-document.execCommand("copy");
-window.getSelection().removeAllRanges();
-alert("Excel'e kopyalandı");
+function copyExcel() {
+    let r = document.createRange();
+    r.selectNode(document.querySelector("table"));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(r);
+    document.execCommand("copy");
+    alert("Excel'e kopyalandı! Hücreleri direkt yapıştırabilirsiniz.");
 }
 
-function clearTable(){
-document.getElementById("out").innerHTML="";
+function clearTable() {
+    if(confirm("Tablo temizlensin mi?")) document.getElementById("out").innerHTML = "";
 }
 </script>
 </body>
